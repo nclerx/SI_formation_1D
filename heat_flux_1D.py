@@ -1,13 +1,24 @@
-""" *Experimental 1D heat conduction model*
-Intended for use in snow and ice and with a
-Calculates heat conduction and the amount of superimposed ice that forms
+""" *** Experimental 1D heat conduction model ****
 
-to be implemented:
-- make alpha a vector of length n and set alpha to zero for all depths that contain irreducible water
-- only once the water has refrozen in the uppermost layer with irreducible water,
-  cooling can progress further to depth
-- Sine curve air temperature variations, in order to be able to simulate one or more years
-- Open boundary condition to the bottom
+Calculates heat conduction and the amount of superimposed ice (SI) that forms, intended for use in snow and ice.
+
+- Only conduction is modelled.
+- While refreezing is simulated, there is no melt simulation. During the model run, no water (as slush or
+irreducible water content) is added. All water is present from the start of the model run.
+- It is assumed that there is infinite amount of slush available for refreezing.
+- The irreducible water content is being specified as input parameter
+- SI formation can be simulated both at the top or at the bottom of the domain.
+    - SI formation at the top to investigate how much SI forms when slush is sitting on top of a cold ice slab and
+    heat flux is from the slush into the cold ice slab.
+    - SI simulation at the bottom when a snow cover is partially filled with slush and heat flow is from the slush.
+    through the snow and towards the snow surface (where heat is lost to a cold atmosphere).
+- The model can take irreducible water content inside the snowpack into account. It does so by assuming that each
+  layer's irreducible water first needs to be frozen before heat conduction through that layer is possible. This means
+  any presence of irreducible water strongly slows the progression of a cold wave.
+- Boundary conditions:
+    - Top and bottom boundary conditions can be defined. Bottom boundary condition can be left open.
+    - Boundary conditions can be a constant temperature, sine curve of air temperature variations,
+
 """
 
 
