@@ -87,6 +87,7 @@ def plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom, phi, 
     t_sel = np.arange(0, len(T_evol[0, :]), dt_plot/dt)
     n_t_sel = len(t_sel)
     colors = plt.cm.brg(np.linspace(0, 1, n_t_sel))
+
     for ni, i in enumerate(t_sel):
         day = int(np.floor(i * dt / 86400))
         ax[0].plot(T_evol[:, int(i)], y, color=colors[ni])
@@ -109,20 +110,19 @@ def plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom, phi, 
         ax[0].axhspan(ax[0].get_ylim()[1], 0, color='skyblue')
         ax[0].text(ax[0].get_xlim()[0] + 0.4, 0 - 0.1, 'slush',
                    color='white', fontsize=40, fontweight='bold')
+
     if slushatbottom:
         ax[1].plot(t[:-1], phi[-1, :-1], color='Tab:blue')
+        ax[1].set_title('Heat flux and superimposed ice formation at snow-slush interface')
     else:
         ax[1].plot(t[:-1], phi[0, :-1], color='Tab:blue')
+        ax[1].set_title('Heat flux and superimposed ice formation at slush-ice interface')
     ax[1].set_xlabel('Days')
     steps = np.round(days/12)
     ax[1].set_xticks(np.arange(0, t_final + 1, 86400 * steps),
                      (np.arange(0, t_final + 1, 86400 * steps) / 86400).astype(int))
     ax[1].tick_params(axis='y', color='Tab:blue', labelcolor='Tab:blue')
     ax[1].set_ylabel('Heat flux (W m$^{-2}$)', color='Tab:blue')
-    if slushatbottom:
-        ax[1].set_title('Heat flux and superimposed ice formation at snow-slush interface')
-    else:
-        ax[1].set_title('Heat flux and superimposed ice formation at slush-ice interface')
 
     ax2 = ax[1].twinx()
     ax2.set_ylabel('S-imposed ice (mm)', color='Tab:orange')

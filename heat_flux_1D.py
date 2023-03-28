@@ -19,15 +19,15 @@ time_start = datetime.datetime.now()
 
 # ============================================== input ===================================================
 
-days = 100  # [days] time period for which to simulate
-D = 15  # [m] thickness of snow pack
-n = 50  # [] number of layers
-T0 = -10  # [°C]  initial temperature of all layers
+days = 10  # [days] time period for which to simulate
+D = 1  # [m] thickness of snow pack
+n = 25  # [] number of layers
+T0 = 0  # [°C]  initial temperature of all layers
 dx = D/n  # [m] layer thickness
-k = 2  # [W m-1 K-1] Thermal conductivity of ice at rho approx. 400 kg m-3 = 0.5; for ice 2.25
+k = 0.5  # [W m-1 K-1] Thermal conductivity of ice at rho approx. 400 kg m-3 = 0.5; for ice 2.25
 Cp = 2090  # [J kg-1 K-1] Specific heat capacity of ice
 L = 334000  # [J kg-1] Latent heat of water
-rho = 900  # [kg m-3] Density of the snow or ice
+rho = 400  # [kg m-3] Density of the snow or ice
 iwc = 0  # [% of mass] Irreducible water content in snow
 por = 0.4  # [] porosity of the snow where it is water saturated
 t_final = 86400 * days  # [s] end of model run
@@ -36,7 +36,7 @@ dt = 600  # [s] numerical time step, needs to be a fraction of 86400 s
 # The model calculates how much slush refreezes into superimposed ice (SI). Slush with refreezing can be
 # prescribed either for the top or the bottom of the model domain (not both). Bottom is default (slushatbottom = True),
 # if set to False, then slush and SI formation is assumed to happen at the top.
-slushatbottom = False
+slushatbottom = True
 # specify if the bottom boundary condition should be applied or not (if not, temperatures at the bottom can fluctuate
 # freely). If there is no bottom boundary condition, also no bottom heat flux will be calculated
 bottom_boundary = True
@@ -45,8 +45,8 @@ bottom_boundary = True
 # can either be a scalar (e.g. -20 °C) or an array of length days + 1
 # Tsurf = np.linspace(-20, -0, days + 1)
 # Tsurf = 'sine'
-Tsurf = 0  # [°C] Top boundary condition
-Tbottom = -10  # [°C] bottom boundary condition
+Tsurf = -10  # [°C] Top boundary condition
+Tbottom = 0  # [°C] bottom boundary condition
 
 output_dir = r'C:\horst\modeling\lateralflow'
 # output_dir = r'D:\modelling\lateralflow'
@@ -93,8 +93,9 @@ refreeze_c = np.cumsum(refreeze, axis=1)
 # and correct for the fact that water occupies only the pore space
 refreeze_c /= por
 
-print('\nHeat flux at the top of the domain end of model run: {:.3f}'.format(phi[0, -2]) + ' W m-2')
-print('Heat flux at the bottom of the domain end of model run: {:.3f}'.format(phi[-2, -2]) + ' W m-2 \n')
+print('\nHeat flux at the top of the domain, end of model run: {:.3f}'.format(phi[0, -2]) + ' W m-2')
+print('Heat flux at the bottom of the domain, end of model run: {:.3f}'.format(phi[-2, -2]) + ' W m-2')
+print('(downward flux is positive, upward flux negative)\n')
 
 time_end_calc = datetime.datetime.now()
 print('runtime', time_end_calc - time_start)
