@@ -40,17 +40,16 @@ def alpha_update(k, rho, Cp, n, iw):
     return alpha
 
 
-def calc_closed(t, n, T, dTdt, alpha, dx, Tsurf, Tbottom, dt, T_evol, phi, k, refreeze, L, iw, rho, Cp):
+def calc_closed(t, n, T, dTdt, alpha, dx, Tsurf, dt, T_evol, phi, k, refreeze, L, iw, rho, Cp):
 
     for j in range(0, len(t)-1):
-        for i in range(1, n-1):
-            dTdt[i] = alpha[i] * (-(T[i] - T[i-1]) / dx**2 + (T[i+1] - T[i]) / dx**2)
-        dTdt[0] = alpha[0] * (-(T[0] - Tsurf[j]) / dx ** 2 + (T[1] - T[0]) / dx ** 2)
-        dTdt[n-1] = alpha[n-1] * (-(T[n-1] - T[n-2]) / dx**2 + (Tbottom - T[n-1]) / dx**2)
-        T = T + dTdt * dt
+        T[0] = Tsurf[j]  # Update temperature top layer according to temperature evolution (if one is prescribed)
+
+        dTdt[:] = alpha * (-(T[1:-1] - T[0:-2]) / dx ** 2 + (T[2:] - T[1:-1]) / dx ** 2)
+
+        T[1:-1] = T[1:-1] + dTdt * dt
         T_evol[:, j] = T
-        T_all = np.append(np.insert(T, 0, Tsurf[j]), Tbottom)
-        phi[:, j] = k * (T_all[:-1] - T_all[1:]) / dx
+        phi[:, j] = k * (T[:-1] - T[1:]) / dx
         iw -= (-1) * phi[:-1, j] * dt / L * (phi[:-1, j] <= 0)  # *(phi[:-1, j] <= 0) otherwise iw created if phi > 0
         iw *= iw > 0  # check there is no negative iw
         alpha = alpha_update(k, rho, Cp, n, iw)
@@ -62,25 +61,26 @@ def calc_closed(t, n, T, dTdt, alpha, dx, Tsurf, Tbottom, dt, T_evol, phi, k, re
 
 def calc_open(t, n, T, dTdt, alpha, dx, Tsurf, dt, T_evol, phi, k, refreeze, L, iw, rho, Cp):
 
-    for j in range(0, len(t)-1):
-        for i in range(1, n-1):
-            dTdt[i] = alpha[i] * (-(T[i] - T[i-1]) / dx**2 + (T[i+1] - T[i]) / dx**2)
-        dTdt[0] = alpha[0] * (-(T[0] - Tsurf[j]) / dx ** 2 + (T[1] - T[0]) / dx ** 2)
-        dTdt[n-1] = alpha[n-1] * (-(T[n-1] - T[n-2]) / dx**2 + (T[n - 1] - T[n-1]) / dx**2)
-        T = T + dTdt * dt
+    for j in range(0, len(t) - 1):
+        T[0] = Tsurf[j]  # Update temperature top layer according to temperature evolution (if one is prescribed)
+        T[-1] = T[-2]  # Update bottom temperature to equal the second-lowest grid cell
+
+        dTdt[:] = alpha * (-(T[1:-1] - T[0:-2]) / dx ** 2 + (T[2:] - T[1:-1]) / dx ** 2)
+
+        T[1:-1] = T[1:-1] + dTdt * dt
         T_evol[:, j] = T
-        T_all = np.append(np.insert(T, 0, Tsurf[j]), T[n - 1])
-        phi[:, j] = k * (T_all[:-1] - T_all[1:]) / dx
+        phi[:, j] = k * (T[:-1] - T[1:]) / dx
         iw -= (-1) * phi[:-1, j] * dt / L * (phi[:-1, j] <= 0)  # *(phi[:-1, j] <= 0) otherwise iw created if phi > 0
         iw *= iw > 0  # check there is no negative iw
         alpha = alpha_update(k, rho, Cp, n, iw)
-        refreeze[j] = (-1) * phi[-1, j] * dt / L  # [mm] refrozen water mm (w.e.) per time step, at bottom of domain
+        refreeze[0, j] = (-1) * phi[-1, j] * dt / L  # [mm] refrozen water mm (w.e.) per time step, at bottom of domain
+        refreeze[1, j] = phi[0, j] * dt / L  # [mm] refrozen water mm (w.e.) per time step, at top of domain
 
     return T_evol, phi, refreeze
 
 
-def plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom, phi, days,
-             t_final, t, refreeze_c, output_dir, bottom_boundary, iwc):
+def plotting(T_evol, dt_plot, dt, y, D, slushatbottom, phi, days,
+             t_final, t, refreeze_c, output_dir, iwc):
 
     plt.rcParams.update({'font.size': 28})
     fig, ax = plt.subplots(2, figsize=(24, 20), gridspec_kw={'height_ratios': [3, 1]})
@@ -91,9 +91,9 @@ def plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom, phi, 
     for ni, i in enumerate(t_sel):
         day = int(np.floor(i * dt / 86400))
         ax[0].plot(T_evol[:, int(i)], y, color=colors[ni])
-        ax[0].plot([Tsurf[int(i)], T_evol[0, int(i)]], [0-dx/2, y[0]], color=colors[ni])
-        if bottom_boundary:
-            ax[0].plot([T_evol[-1, int(i)], Tbottom], [y[-1], D+dx/2], color=colors[ni])
+        # ax[0].plot([Tsurf[int(i)], T_evol[0, int(i)]], [0-dx/2, y[0]], color=colors[ni])
+        # if bottom_boundary:
+        #     ax[0].plot([T_evol[-1, int(i)], Tbottom], [y[-1], D+dx/2], color=colors[ni])
         ax[0].axhline(0, color='gray', ls=':')
         ax[0].axhline(D, color='gray', ls=':')
     ax[0].invert_yaxis()
@@ -102,7 +102,7 @@ def plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom, phi, 
     ax[0].set_ylim(ax[0].get_ylim()[0], ax[0].get_ylim()[1])
     if slushatbottom:
         ax[0].set_title('Temperature with snow depth')
-        ax[0].axhspan(1, ax[0].get_ylim()[0], color='skyblue')
+        ax[0].axhspan(D, ax[0].get_ylim()[0], color='skyblue')
         ax[0].text(ax[0].get_xlim()[0] + 0.4, ax[0].get_ylim()[0] - 0.02, 'slush',
                    color='white', fontsize=40, fontweight='bold')
     else:

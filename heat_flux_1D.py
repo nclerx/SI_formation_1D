@@ -46,7 +46,7 @@ k = 0.5  # [W m-1 K-1] Thermal conductivity of ice at rho approx. 400 kg m-3 = 0
 Cp = 2090  # [J kg-1 K-1] Specific heat capacity of ice
 L = 334000  # [J kg-1] Latent heat of water
 rho = 400  # [kg m-3] Density of the snow or ice
-iwc = 0  # [% of mass] Irreducible water content in snow
+iwc = 7  # [% of mass] Irreducible water content in snow
 por = 0.4  # [] porosity of the snow where it is water saturated
 t_final = 86400 * days  # [s] end of model run
 dt = 600  # [s] numerical time step, needs to be a fraction of 86400 s
@@ -56,14 +56,14 @@ dt = 600  # [s] numerical time step, needs to be a fraction of 86400 s
 # if set to False, then slush and SI formation is assumed to happen at the top.
 slushatbottom = True
 # specify if the bottom boundary condition should be applied or not (if not, temperatures at the bottom can fluctuate
-# freely). If there is no bottom boundary condition, also no bottom heat flux will be calculated
+# freely). If there is no bottom boundary condition, bottom heat flux will equal zero
 bottom_boundary = True
 
 # -20  # [°C] boundary condition temperature top
 # can either be a scalar (e.g. -20 °C) or an array of length days + 1
 # Tsurf = np.linspace(-20, -0, days + 1)
 # Tsurf = 'sine'
-Tsurf = -10  # [°C] Top boundary condition
+Tsurf = -20  # [°C] Top boundary condition
 Tbottom = 0  # [°C] bottom boundary condition
 
 output_dir = r'C:\horst\modeling\lateralflow'
@@ -71,10 +71,12 @@ output_dir = r'C:\horst\modeling\lateralflow'
 
 # ============================================== Preparations ===================================================
 
-y = np.linspace(dx/2, D-dx/2, n)  # vector of central points of each depth interval (=layer)
+y = np.linspace(-dx/2, D+dx/2, n+2)  # vector of central points of each depth interval (=layer)
 t = np.arange(0, t_final, dt)  # vector of time steps
-T = np.ones(n) * T0  # vector of temperatures for each layer
-T_evol = np.ones([n, len(t)]) * T0  # array of temperatures for each layer and time step
+# T = np.ones(n) * T0  # vector of temperatures for each layer
+# Vector of T for all layers (n + 2 (bottom and top)). Top set to zero, will then be updated each model step
+T = np.append(np.insert(np.ones(n) * T0, 0, 0), Tbottom)
+T_evol = np.ones([n+2, len(t)]) * T0  # array of temperatures for each layer and time step
 dTdt = np.empty(n)  # derivative of temperature at each node
 phi = np.empty([n+1, len(t)])  # array of the heat flux per time step, for each layer and time step
 refreeze = np.empty([2, len(t)])
@@ -100,7 +102,7 @@ else:
 
 # calculation of temperature profile over time
 if bottom_boundary:
-    T_evol, phi, refreeze, iw = hf.calc_closed(t, n, T, dTdt, alpha, dx, Tsurf, Tbottom, dt,
+    T_evol, phi, refreeze, iw = hf.calc_closed(t, n, T, dTdt, alpha, dx, Tsurf, dt,
                                                T_evol, phi, k, refreeze, L, iw, rho, Cp)
 else:
     T_evol, phi, refreeze = hf.calc_open(t, n, T, dTdt, alpha, dx, Tsurf, dt, T_evol,
@@ -119,5 +121,5 @@ time_end_calc = datetime.datetime.now()
 print('runtime', time_end_calc - time_start)
 
 # plotting
-hf.plotting(T_evol, dt_plot, dt, Tsurf, dx, y, Tbottom, D, slushatbottom,
-            phi, days, t_final, t, refreeze_c, output_dir, bottom_boundary, iwc)
+hf.plotting(T_evol, dt_plot, dt, y, D, slushatbottom, phi, days,
+            t_final, t, refreeze_c, output_dir, iwc)
