@@ -1,26 +1,33 @@
 """ *** Experimental 1D heat conduction model ****
 
-Calculates heat conduction and the amount of superimposed ice (SI) that forms, intended for use in snow and ice.
-
-- Only conduction is modelled.
-- While refreezing is simulated, there is no melt simulation. During the model run, no water (as slush or
-irreducible water content) is added. All water is present from the start of the model run.
-- It is assumed that there is infinite amount of slush available for refreezing.
-- The irreducible water content is being specified as input parameter
-- SI formation can be simulated both at the top or at the bottom of the domain.
+- Basics:
+    - Calculates heat conduction and the amount of superimposed ice (SI) that forms.
+    - Intended for use in snow and ice.
+    - Only conduction is modelled.
+    - While refreezing is simulated, there is no melt simulation. During the model run, no water (as slush or
+      irreducible water content) is added. All water is present from the start of the model run.
+- SI formation and irreducible water content
+    - It is assumed that there is infinite amount of slush available for refreezing.
+    - SI formation can be simulated both at the top or at the bottom of the domain.
     - SI formation at the top to investigate how much SI forms when slush is sitting on top of a cold ice slab and
-    heat flux is from the slush into the cold ice slab.
+      heat flux is from the slush into the cold ice slab.
     - SI simulation at the bottom when a snow cover is partially filled with slush and heat flow is from the slush.
-    through the snow and towards the snow surface (where heat is lost to a cold atmosphere).
-- The model can take irreducible water content inside the snowpack into account. It does so by assuming that each
-  layer's irreducible water first needs to be frozen before heat conduction through that layer is possible. This means
-  any presence of irreducible water strongly slows the progression of a cold wave.
+      through the snow and towards the snow surface (where heat is lost to a cold atmosphere).
+    - The irreducible water content is being specified as input parameter
+    - The model can take irreducible water content inside the snowpack into account. It does so by assuming that each
+      layer's irreducible water first needs to be frozen before heat conduction through that layer is possible. This means
+      any presence of irreducible water strongly slows the progression of a cold wave.
 - Boundary conditions:
-    - Top and bottom boundary conditions can be defined. Bottom boundary condition can be left open.
-    - Boundary conditions can be a constant temperature, sine curve of air temperature variations,
+    - Top and bottom boundary conditions can be defined.
+    - Bottom boundary condition can be left open.
+    - Boundary conditions can be a constant temperature, sine curve of air temperature over several years,
+      or simple linear change in air temperature.
+- Numerics:
+    - Simulation is 1D along a depth axis, the depth axis is divided into evenly spaced layers
+    - Numerical time steps, resolution of the depth axis and parameter alpha (k / (rho * Cp)) need to match,
+      the smaller layer spacing and the larger alpha, the shorter the time steps need to be chosen
 
 """
-
 
 import numpy as np
 import heat_flux_1D_functions as hf
