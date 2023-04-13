@@ -29,7 +29,7 @@ def tsurf_sine(days, t_final, dt, years, Tmean, Tamplitude):
 def irrw(iwc, n, dx, rho, T0):
     iw = np.ones(n) * dx * 1000 * rho / 1000 * iwc / 100
     if (T0 < 0) & (iwc > 0):
-        print('\n *** Warning: irreduible water content > 0 for negative T0. Setting irred. water content to 0. *** \n')
+        print('\n *** Warning: irreducible water content > 0 for negative T0. Setting irred. water content to 0. *** \n')
         iw *= 0
         iwc = 0
     return iw, iwc

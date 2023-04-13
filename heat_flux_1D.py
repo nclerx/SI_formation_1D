@@ -37,16 +37,16 @@ time_start = datetime.datetime.now()
 
 # ============================================== input ===================================================
 
-days = 10  # [days] time period for which to simulate
-D = 1  # [m] thickness of snow pack
-n = 25  # [] number of layers
-T0 = 0  # [°C]  initial temperature of all layers
+days = 100  # [days] time period for which to simulate
+D = 15  # [m] thickness of snow pack
+n = 50  # [] number of layers
+T0 = -10  # [°C]  initial temperature of all layers
 dx = D/n  # [m] layer thickness
-k = 0.5  # [W m-1 K-1] Thermal conductivity of ice at rho approx. 400 kg m-3 = 0.5; for ice 2.25
+k = 2.0  # [W m-1 K-1] Thermal conductivity of ice at rho approx. 400 kg m-3 = 0.5; for ice 2.25
 Cp = 2090  # [J kg-1 K-1] Specific heat capacity of ice
 L = 334000  # [J kg-1] Latent heat of water
-rho = 400  # [kg m-3] Density of the snow or ice
-iwc = 7  # [% of mass] Irreducible water content in snow
+rho = 900  # [kg m-3] Density of the snow or ice
+iwc = 0  # [% of mass] Irreducible water content in snow
 por = 0.4  # [] porosity of the snow where it is water saturated
 t_final = 86400 * days  # [s] end of model run
 dt = 600  # [s] numerical time step, needs to be a fraction of 86400 s
@@ -54,19 +54,20 @@ dt = 600  # [s] numerical time step, needs to be a fraction of 86400 s
 # The model calculates how much slush refreezes into superimposed ice (SI). Slush with refreezing can be
 # prescribed either for the top or the bottom of the model domain (not both). Bottom is default (slushatbottom = True),
 # if set to False, then slush and SI formation is assumed to happen at the top.
-slushatbottom = True
+slushatbottom = False
 # specify if the bottom boundary condition should be applied or not (if not, temperatures at the bottom can fluctuate
 # freely). If there is no bottom boundary condition, bottom heat flux will equal zero
-bottom_boundary = True
+bottom_boundary = False
 
 # -20  # [°C] boundary condition temperature top
 # can either be a scalar (e.g. -20 °C) or an array of length days + 1
 # Tsurf = np.linspace(-20, -0, days + 1)
 # Tsurf = 'sine'
-Tsurf = -20  # [°C] Top boundary condition
-Tbottom = 0  # [°C] bottom boundary condition
+Tsurf = 0  # [°C] Top boundary condition
+Tbottom = -10  # [°C] bottom boundary condition
 
-output_dir = r'C:\horst\modeling\lateralflow'
+# output_dir = r'C:\horst\modeling\lateralflow'
+output_dir = r'C:\Users\ClerxN\switchdrive\PhD\modelling\1D_SI'
 # output_dir = r'D:\modelling\lateralflow'
 
 # ============================================== Preparations ===================================================
@@ -121,5 +122,5 @@ time_end_calc = datetime.datetime.now()
 print('runtime', time_end_calc - time_start)
 
 # plotting
-hf.plotting(T_evol, dt_plot, dt, y, D, slushatbottom, phi, days,
-            t_final, t, refreeze_c, output_dir, iwc)
+# hf.plotting(T_evol, dt_plot, dt, y, D, slushatbottom, phi, days,
+#             t_final, t, refreeze_c, output_dir, iwc)
